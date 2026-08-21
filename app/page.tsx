@@ -82,12 +82,12 @@ function ApplicationForm() {
 
   return <form ref={formRef} className="application-form" noValidate onSubmit={handleSubmit}>
     <div className="form-grid">
-      <label>01 <span>How long have you been trading?</span><input {...fieldProps('experience')} placeholder="e.g. 2 years" />{errors.experience && <small id="experience-error" className="field-error">{errors.experience}</small>}</label>
-      <label>02 <span>What do you trade?</span><input {...fieldProps('market')} placeholder="e.g. NQ futures" />{errors.market && <small id="market-error" className="field-error">{errors.market}</small>}</label>
-      <label>03 <span>What is your biggest recurring challenge?</span><textarea {...fieldProps('challenge')} rows={3} placeholder="Tell us what keeps showing up..." />{errors.challenge && <small id="challenge-error" className="field-error">{errors.challenge}</small>}</label>
-      <label>04 <span>How do you currently prepare, execute, and review?</span><textarea {...fieldProps('process')} rows={3} placeholder="Describe your current process..." />{errors.process && <small id="process-error" className="field-error">{errors.process}</small>}</label>
-      <label>05 <span>What would you want to be different after eight weeks?</span><textarea {...fieldProps('goal')} rows={3} placeholder="Describe the change you want to make..." />{errors.goal && <small id="goal-error" className="field-error">{errors.goal}</small>}</label>
-      <label>06 <span>Can you commit to the weekly work and review process?</span><select {...fieldProps('commitment')} defaultValue=""><option value="" disabled>Select one</option><option>Yes, I can commit</option><option>I need to understand the schedule first</option></select>{errors.commitment && <small id="commitment-error" className="field-error">{errors.commitment}</small>}</label>
+      <label>01 <span><b className="form-label-desktop">How long have you been trading?</b><b className="form-label-mobile">Trading experience</b></span><input {...fieldProps('experience')} placeholder="e.g. 2 years" />{errors.experience && <small id="experience-error" className="field-error">{errors.experience}</small>}</label>
+      <label>02 <span><b className="form-label-desktop">What do you trade?</b><b className="form-label-mobile">Markets traded</b></span><input {...fieldProps('market')} placeholder="e.g. NQ futures" />{errors.market && <small id="market-error" className="field-error">{errors.market}</small>}</label>
+      <label>03 <span><b className="form-label-desktop">What is your biggest recurring challenge?</b><b className="form-label-mobile">Recurring challenge</b></span><textarea {...fieldProps('challenge')} rows={3} placeholder="Tell us what keeps showing up..." />{errors.challenge && <small id="challenge-error" className="field-error">{errors.challenge}</small>}</label>
+      <label>04 <span><b className="form-label-desktop">How do you currently prepare, execute, and review?</b><b className="form-label-mobile">Current process</b></span><textarea {...fieldProps('process')} rows={3} placeholder="Describe your current process..." />{errors.process && <small id="process-error" className="field-error">{errors.process}</small>}</label>
+      <label>05 <span><b className="form-label-desktop">What would you want to be different after eight weeks?</b><b className="form-label-mobile">Eight-week outcome</b></span><textarea {...fieldProps('goal')} rows={3} placeholder="Describe the change you want to make..." />{errors.goal && <small id="goal-error" className="field-error">{errors.goal}</small>}</label>
+      <label>06 <span><b className="form-label-desktop">Can you commit to the weekly work and review process?</b><b className="form-label-mobile">Weekly commitment</b></span><select {...fieldProps('commitment')} defaultValue=""><option value="" disabled>Select one</option><option>Yes, I can commit</option><option>I need to understand the schedule first</option></select>{errors.commitment && <small id="commitment-error" className="field-error">{errors.commitment}</small>}</label>
     </div><button className="apply-link submit-button" type="submit">Submit application <ArrowUpRight size={16} strokeWidth={1.5} /></button>
   </form>
 }
@@ -98,7 +98,11 @@ export default function Page() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const updateStickyApply = () => setShowStickyApply(window.scrollY > 420)
+    const updateStickyApply = () => {
+      const application = document.querySelector<HTMLElement>('#apply')
+      const applicationVisible = application ? application.getBoundingClientRect().top < window.innerHeight * 0.8 && application.getBoundingClientRect().bottom > 100 : false
+      setShowStickyApply(window.scrollY > 420 && !applicationVisible)
+    }
     updateStickyApply()
     window.addEventListener('scroll', updateStickyApply, { passive: true })
     return () => window.removeEventListener('scroll', updateStickyApply)
