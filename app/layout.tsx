@@ -14,7 +14,11 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
+<<<<<<< HEAD
   metadataBase: new URL('https://marcus-vale-mentorship-beta.vercel.app/'),
+=======
+  metadataBase: new URL('https://marcusvale.example'),
+>>>>>>> 687127bdb8c91363d86ba86b554cfd590b39a1de
   generator: 'v0.app',
   applicationName: 'Marcus Vale Mentorship',
   icons: {
