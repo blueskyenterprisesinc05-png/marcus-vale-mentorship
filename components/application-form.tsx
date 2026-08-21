@@ -88,19 +88,36 @@ export function ApplicationForm() {
   const [submitted, setSubmitted] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
+  function fieldError(field: Field, raw: string): string | undefined {
+    const value = raw.trim()
+    if (!value) return `${field.errLabel} is required.`
+    if (field.inputType === 'email' && !emailPattern.test(value)) {
+      return 'Enter a valid email address.'
+    }
+    return undefined
+  }
+
   function validate() {
     const next: Record<string, string> = {}
     for (const field of fields) {
-      const value = (values[field.id] ?? '').trim()
-      if (!value) {
-        next[field.id] = `${field.errLabel} is required.`
-        continue
-      }
-      if (field.inputType === 'email' && !emailPattern.test(value)) {
-        next[field.id] = 'Enter a valid email address.'
-      }
+      const message = fieldError(field, values[field.id] ?? '')
+      if (message) next[field.id] = message
     }
     return next
+  }
+
+  function handleBlur(field: Field) {
+    const message = fieldError(field, values[field.id] ?? '')
+    setErrors((prev) => {
+      if (message) {
+        if (prev[field.id] === message) return prev
+        return { ...prev, [field.id]: message }
+      }
+      if (!prev[field.id]) return prev
+      const next = { ...prev }
+      delete next[field.id]
+      return next
+    })
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
