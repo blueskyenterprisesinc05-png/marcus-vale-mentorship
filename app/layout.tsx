@@ -13,6 +13,7 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
+  metadataBase: new URL('https://marcusvale.example'),
   generator: 'v0.app',
   applicationName: 'Marcus Vale Mentorship',
   icons: {
