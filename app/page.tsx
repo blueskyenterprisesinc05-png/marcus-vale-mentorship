@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { ArrowDownRight, ArrowUpRight, Check, Menu, Minus, Plus } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Check, Menu, Minus, Plus, X } from 'lucide-react'
 
 const principles = [
   ['01', 'Context', 'Understand what the market is doing before looking for an opportunity.'],
@@ -42,20 +42,76 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="section-label">{children}</p>
 }
 
-function ApplyLink({ className = '' }: { className?: string }) {
-  return <a className={`apply-link ${className}`} href="#apply">Apply for 1-on-1 Mentorship <ArrowUpRight size={16} strokeWidth={1.5} /></a>
+function ApplyLink({ className = '', onClick }: { className?: string; onClick?: () => void }) {
+  return <a className={`apply-link ${className}`} href="#apply" onClick={onClick}>Apply for 1-on-1 Mentorship <ArrowUpRight size={16} strokeWidth={1.5} /></a>
 }
 
 function ApplicationForm() {
   const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const formRef = useRef<HTMLFormElement>(null)
 
-  if (submitted) return <div className="application-success"><SectionLabel>APPLICATION RECEIVED</SectionLabel><h3>Thanks for putting your process on paper.</h3><p>Marcus will review your answers and follow up if the mentorship looks like a strong fit.</p></div>
+  const validateField = (field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) => {
+    const message = field.value.trim() ? '' : 'Please complete this field.'
+    setErrors((current) => ({ ...current, [field.name]: message }))
+    return message
+  }
 
-  return <form className="application-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true) }}>
-    <div className="form-grid"><label>01 <span>How long have you been trading?</span><input required name="experience" placeholder="e.g. 2 years" /></label><label>02 <span>What do you trade?</span><input required name="market" placeholder="e.g. NQ futures" /></label><label>03 <span>What is your biggest recurring challenge?</span><textarea required name="challenge" rows={3} placeholder="Tell us what keeps showing up..." /></label><label>04 <span>How do you currently prepare, execute, and review?</span><textarea required name="process" rows={3} placeholder="Describe your current process..." /></label><label>05 <span>What would you want to be different after eight weeks?</span><textarea required name="goal" rows={3} placeholder="Describe the change you want to make..." /></label><label>06 <span>Can you commit to the weekly work and review process?</span><select required name="commitment" defaultValue=""><option value="" disabled>Select one</option><option>Yes, I can commit</option><option>I need to understand the schedule first</option></select></label></div><button className="apply-link submit-button" type="submit">Submit application <ArrowUpRight size={16} strokeWidth={1.5} /></button></form>
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const fields = Array.from(formRef.current?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[name]') ?? [])
+    const nextErrors = Object.fromEntries(fields.map((field) => [field.name, field.value.trim() ? '' : 'Please complete this field.']))
+    setErrors(nextErrors)
+    const firstInvalid = fields.find((field) => nextErrors[field.name])
+    if (firstInvalid) {
+      firstInvalid.focus()
+      return
+    }
+    setSubmitted(true)
+  }
+
+  if (submitted) return <div className="application-success" role="status"><SectionLabel>APPLICATION RECEIVED</SectionLabel><h3>Thanks for putting your process on paper.</h3><p>Marcus will review your answers and follow up if the mentorship looks like a strong fit.</p></div>
+
+  const fieldProps = (name: string) => ({
+    name,
+    required: true,
+    'aria-invalid': Boolean(errors[name]),
+    'aria-describedby': errors[name] ? `${name}-error` : undefined,
+    onBlur: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => validateField(event.currentTarget),
+  })
+
+  return <form ref={formRef} className="application-form" noValidate onSubmit={handleSubmit}>
+    <div className="form-grid">
+      <label>01 <span>How long have you been trading?</span><input {...fieldProps('experience')} placeholder="e.g. 2 years" />{errors.experience && <small id="experience-error" className="field-error">{errors.experience}</small>}</label>
+      <label>02 <span>What do you trade?</span><input {...fieldProps('market')} placeholder="e.g. NQ futures" />{errors.market && <small id="market-error" className="field-error">{errors.market}</small>}</label>
+      <label>03 <span>What is your biggest recurring challenge?</span><textarea {...fieldProps('challenge')} rows={3} placeholder="Tell us what keeps showing up..." />{errors.challenge && <small id="challenge-error" className="field-error">{errors.challenge}</small>}</label>
+      <label>04 <span>How do you currently prepare, execute, and review?</span><textarea {...fieldProps('process')} rows={3} placeholder="Describe your current process..." />{errors.process && <small id="process-error" className="field-error">{errors.process}</small>}</label>
+      <label>05 <span>What would you want to be different after eight weeks?</span><textarea {...fieldProps('goal')} rows={3} placeholder="Describe the change you want to make..." />{errors.goal && <small id="goal-error" className="field-error">{errors.goal}</small>}</label>
+      <label>06 <span>Can you commit to the weekly work and review process?</span><select {...fieldProps('commitment')} defaultValue=""><option value="" disabled>Select one</option><option>Yes, I can commit</option><option>I need to understand the schedule first</option></select>{errors.commitment && <small id="commitment-error" className="field-error">{errors.commitment}</small>}</label>
+    </div><button className="apply-link submit-button" type="submit">Submit application <ArrowUpRight size={16} strokeWidth={1.5} /></button>
+  </form>
 }
 
 export default function Page() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showStickyApply, setShowStickyApply] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const updateStickyApply = () => setShowStickyApply(window.scrollY > 420)
+    updateStickyApply()
+    window.addEventListener('scroll', updateStickyApply, { passive: true })
+    return () => window.removeEventListener('scroll', updateStickyApply)
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('keydown', closeOnEscape)
+    menuRef.current?.querySelector<HTMLElement>('a')?.focus()
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [menuOpen])
+
   return (
     <main>
       <header className="site-header">
@@ -65,7 +121,8 @@ export default function Page() {
         </nav>
         <nav className="social-nav" aria-label="Social links"><a href="#x">X</a><a href="#instagram">Instagram</a><a href="#discord">Discord</a></nav>
         <ApplyLink className="header-cta" />
-        <a className="mobile-menu" href="#mentorship" aria-label="Jump to mentorship"><Menu size={20} /></a>
+        <button className="mobile-menu" type="button" aria-label="Open navigation" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(true)}><Menu size={20} /></button>
+        {menuOpen && <div className="mobile-drawer-backdrop" role="presentation" onClick={() => setMenuOpen(false)}><div ref={menuRef} id="mobile-navigation" className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile navigation" onClick={(event) => event.stopPropagation()}><button className="mobile-drawer-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={20} /></button><a href="#approach" onClick={() => setMenuOpen(false)}>Approach</a><a href="#mentorship" onClick={() => setMenuOpen(false)}>Mentorship</a><a href="#about" onClick={() => setMenuOpen(false)}>About</a><ApplyLink onClick={() => setMenuOpen(false)} /></div></div>}
       </header>
 
       <section className="hero" id="top">
@@ -103,6 +160,7 @@ export default function Page() {
 
       <section className="final-cta"><div><SectionLabel>READY TO BUILD A PROCESS YOU CAN TRUST?</SectionLabel><h2>Trade with a process.<br /><em>Take ownership.</em></h2><p>If you&apos;re looking for another strategy, I&apos;m probably not the right mentor. If you&apos;re ready to understand your decisions and refine your process, apply below.</p><ApplyLink /></div></section>
 
+      {showStickyApply && <a className="apply-link mobile-apply" href="#apply">Apply for Mentorship <ArrowUpRight size={16} strokeWidth={1.5} /></a>}
       <footer className="site-footer"><a className="wordmark" href="#top">MARCUS <span>VALE</span></a><p>© 2026 Marcus Vale. Educational mentorship only. No financial outcomes are guaranteed.</p><div><a href="#x">X</a><a href="#instagram">Instagram</a><a href="#discord">Discord</a></div></footer>
     </main>
   )

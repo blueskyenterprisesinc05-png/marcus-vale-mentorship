@@ -9,6 +9,13 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono'
 export const metadata: Metadata = {
   title: 'Marcus Vale — 1-on-1 Futures Trading Mentorship',
   description: 'Build a repeatable futures trading process with private mentorship from Marcus Vale.',
+  metadataBase: new URL('https://marcusvale.example'),
+  openGraph: {
+    title: 'Marcus Vale — 1-on-1 Futures Trading Mentorship',
+    description: 'Build a repeatable futures trading process with private mentorship from Marcus Vale.',
+    type: 'website',
+  },
+  icons: { icon: '/favicon.ico' },
   generator: 'v0.app',
 }
 
