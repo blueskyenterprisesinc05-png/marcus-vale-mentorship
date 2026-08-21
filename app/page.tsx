@@ -1,8 +1,8 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
-import { ArrowDownRight, ArrowUpRight, Check, Menu, Minus, Plus } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Check, Minus, Plus } from 'lucide-react'
+import { MobileNav } from '@/components/mobile-nav'
+import { ApplicationForm } from '@/components/application-form'
+import { StickyApplyCta } from '@/components/sticky-apply-cta'
 
 const principles = [
   ['01', 'Context', 'Understand what the market is doing before looking for an opportunity.'],
@@ -46,15 +46,6 @@ function ApplyLink({ className = '' }: { className?: string }) {
   return <a className={`apply-link ${className}`} href="#apply">Apply for 1-on-1 Mentorship <ArrowUpRight size={16} strokeWidth={1.5} /></a>
 }
 
-function ApplicationForm() {
-  const [submitted, setSubmitted] = useState(false)
-
-  if (submitted) return <div className="application-success"><SectionLabel>APPLICATION RECEIVED</SectionLabel><h3>Thanks for putting your process on paper.</h3><p>Marcus will review your answers and follow up if the mentorship looks like a strong fit.</p></div>
-
-  return <form className="application-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true) }}>
-    <div className="form-grid"><label>01 <span>How long have you been trading?</span><input required name="experience" placeholder="e.g. 2 years" /></label><label>02 <span>What do you trade?</span><input required name="market" placeholder="e.g. NQ futures" /></label><label>03 <span>What is your biggest recurring challenge?</span><textarea required name="challenge" rows={3} placeholder="Tell us what keeps showing up..." /></label><label>04 <span>How do you currently prepare, execute, and review?</span><textarea required name="process" rows={3} placeholder="Describe your current process..." /></label><label>05 <span>What would you want to be different after eight weeks?</span><textarea required name="goal" rows={3} placeholder="Describe the change you want to make..." /></label><label>06 <span>Can you commit to the weekly work and review process?</span><select required name="commitment" defaultValue=""><option value="" disabled>Select one</option><option>Yes, I can commit</option><option>I need to understand the schedule first</option></select></label></div><button className="apply-link submit-button" type="submit">Submit application <ArrowUpRight size={16} strokeWidth={1.5} /></button></form>
-}
-
 export default function Page() {
   return (
     <main>
@@ -65,7 +56,7 @@ export default function Page() {
         </nav>
         <nav className="social-nav" aria-label="Social links"><a href="#x">X</a><a href="#instagram">Instagram</a><a href="#discord">Discord</a></nav>
         <ApplyLink className="header-cta" />
-        <a className="mobile-menu" href="#mentorship" aria-label="Jump to mentorship"><Menu size={20} /></a>
+        <MobileNav />
       </header>
 
       <section className="hero" id="top">
@@ -87,7 +78,7 @@ export default function Page() {
 
       <section className="fit section-pad"><div className="fit-head"><SectionLabel>THE RIGHT FIT</SectionLabel><h2>This isn&apos;t<br /><em>for everyone.</em></h2><p>The mentorship is built for traders who already have some market experience and are ready to take ownership of their process.</p></div><div className="fit-columns"><div className="fit-column for"><h3>This is for you if</h3>{['You already trade but struggle with consistency.','You want direct feedback.','You are willing to journal and review.','You want a repeatable process.','You are prepared to follow risk rules.','You want to understand your mistakes instead of blaming the market.'].map(x => <p key={x}><Check size={15} />{x}</p>)}</div><div className="fit-column not"><h3>This is not for you if</h3>{['You want trade alerts.','You want someone to tell you exactly what to buy or sell.','You expect guaranteed returns.','You’re looking for a shortcut.','You’re unwilling to review your own decisions.','You expect Marcus to do the work for you.'].map(x => <p key={x}><Minus size={15} />{x}</p>)}</div></div></section>
 
-      <section className="mentorship section-pad" id="mentorship"><div className="section-intro"><SectionLabel>THE MENTORSHIP</SectionLabel><h2>Eight weeks.<br /><em>One process.</em></h2><p>The mentorship is structured around diagnosis, implementation, execution, and refinement—not hours of passive content.</p></div><div className="week-list">{weeks.map(([tag,t,d,o]) => <article className="week" key={tag}><div className="week-tag">{tag}</div><div><h3>{t}</h3><p>{d}</p><strong>{o}</strong></div></article>)}</div><div className="included"><SectionLabel>WHAT YOU GET</SectionLabel><div className="included-grid">{['1-on-1 sessions','Trade review','Journal review','Personalized framework','Between-session support','Weekly work','Final trading playbook'].map((x,i) => <div key={x}><span>0{i+1}</span><h3>{x}</h3></div>)}</div></div></section>
+      <section className="mentorship section-pad" id="mentorship"><div className="section-intro"><SectionLabel>THE MENTORSHIP</SectionLabel><h2>Eight weeks.<br /><em>One process.</em></h2><p>Each week centers on a private 60-minute 1-on-1 session, review of your trades and journal, one practical implementation task, and private async support between sessions—not hours of passive content. You finish with a documented trading playbook.</p></div><div className="week-list">{weeks.map(([tag,t,d,o]) => <article className="week" key={tag}><div className="week-tag">{tag}</div><div><h3>{t}</h3><p>{d}</p><strong>{o}</strong></div></article>)}</div><div className="included"><SectionLabel>WHAT YOU GET</SectionLabel><div className="included-grid">{['1-on-1 sessions','Trade review','Journal review','Personalized framework','Between-session support','Weekly work','Final trading playbook'].map((x,i) => <div key={x}><span>0{i+1}</span><h3>{x}</h3></div>)}</div></div></section>
 
       <section className="about section-pad" id="about"><div className="about-image"><Image src="/marcus-portrait.png" alt="Marcus Vale portrait" fill sizes="(max-width: 768px) 100vw, 42vw" className="about-photo" /></div><div className="about-copy"><SectionLabel>THE PERSON BEHIND THE PROCESS</SectionLabel><h2>Clarity is a skill.</h2><p>Marcus has spent 8+ years trading ES and NQ futures intraday, with a focus on price action and decision quality.</p><p>He spent years trying to solve inconsistency by adding more information—more strategies, more charts, more variables.</p><p>Eventually, he found the problem wasn&apos;t a lack of information. It was a lack of a process that could survive real decisions. That became the foundation of how he trades—and how he mentors.</p><div className="about-meta"><span>BASED IN<br /><b>LONDON, UK</b></span><span>MARKETS<br /><b>ES / NQ FUTURES</b></span><span>STYLE<br /><b>INTRADAY / PRICE ACTION</b></span></div></div></section>
 
@@ -95,7 +86,7 @@ export default function Page() {
 
       <section className="proof section-pad"><div className="section-intro"><SectionLabel>PROCESS-FOCUSED PROOF</SectionLabel><h2>What changes when<br /><em>the process gets clearer.</em></h2></div><div className="proof-grid"><blockquote>“I stopped changing strategies every time I had a losing week. I had something to review instead of something to replace.”<cite>— Daniel R. · Futures trader</cite></blockquote><blockquote>“The biggest shift wasn&apos;t finding better entries. It was understanding why I was taking the bad ones.”<cite>— Alex M. · NQ trader</cite></blockquote><blockquote>“I finally had a process I could explain on paper before I ever opened the chart.”<cite>— Chris T. · Futures trader</cite></blockquote></div></section>
 
-      <section className="offer section-pad"><div className="offer-copy"><SectionLabel>THE OFFER</SectionLabel><h2>Private work.<br /><em>Built around you.</em></h2><p>Eight weeks of direct, high-touch mentorship for traders ready to stop collecting information and start building a process they can trust.</p></div><div className="price-card"><div><span>1-ON-1 MENTORSHIP</span><strong>$2,500</strong><small>USD · 8 weeks</small></div><ul><li>Weekly 1-on-1 sessions</li><li>Trade review</li><li>Journal review</li><li>Between-session support</li><li>Weekly implementation work</li><li>Personal trading playbook</li></ul><ApplyLink /></div></section>
+      <section className="offer section-pad"><div className="offer-copy"><SectionLabel>THE OFFER</SectionLabel><h2>Private work.<br /><em>Built around you.</em></h2><p>Eight weeks of direct, high-touch mentorship for traders ready to stop collecting information and start building a process they can trust.</p><p className="offer-distinction">This isn&apos;t a library of trading content. It&apos;s direct, individual work built around your own trades and decisions:</p><ul className="offer-value"><li>Direct access</li><li>Personalized review</li><li>Individual feedback</li><li>Accountability</li><li>Process refinement</li><li>Real trade &amp; journal analysis</li></ul></div><div className="price-card"><div><span>1-ON-1 MENTORSHIP</span><strong>$2,500</strong><small>USD · 8 weeks</small></div><dl className="price-delivery"><div><dt>Weekly private session</dt><dd>60-minute 1-on-1 focused on your actual decisions.</dd></div><div><dt>Before each session</dt><dd>Submit selected trades and journal entries for review.</dd></div><div><dt>During the week</dt><dd>Private async support for clarification and accountability.</dd></div><div><dt>Weekly implementation</dt><dd>One practical task focused on improving your process.</dd></div><div><dt>Final outcome</dt><dd>A documented personal trading playbook with your framework, rules, and review routine.</dd></div></dl><p className="offer-disclaimer">Educational mentorship only. No trading profits or financial outcomes are guaranteed.</p><ApplyLink /></div></section>
 
       <section className="application section-pad" id="apply"><div className="application-heading"><SectionLabel>THE APPLICATION</SectionLabel><h2>Let&apos;s see if<br /><em>we&apos;re a fit.</em></h2><p>This isn&apos;t a sales call. It&apos;s a short application to understand where you are, what you&apos;re struggling with, and whether the mentorship makes sense for you.</p></div><ApplicationForm /></section>
 
@@ -104,6 +95,8 @@ export default function Page() {
       <section className="final-cta"><div><SectionLabel>READY TO BUILD A PROCESS YOU CAN TRUST?</SectionLabel><h2>Trade with a process.<br /><em>Take ownership.</em></h2><p>If you&apos;re looking for another strategy, I&apos;m probably not the right mentor. If you&apos;re ready to understand your decisions and refine your process, apply below.</p><ApplyLink /></div></section>
 
       <footer className="site-footer"><a className="wordmark" href="#top">MARCUS <span>VALE</span></a><p>© 2026 Marcus Vale. Educational mentorship only. No financial outcomes are guaranteed.</p><div><a href="#x">X</a><a href="#instagram">Instagram</a><a href="#discord">Discord</a></div></footer>
+
+      <StickyApplyCta />
     </main>
   )
 }
