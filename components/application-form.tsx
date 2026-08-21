@@ -1,141 +1,121 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { useRef, useState, useTransition } from 'react'
+import { ArrowUpRight, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { submitApplication } from '@/app/actions/application'
+import { applicationSchema } from '@/lib/validation'
 
-type Field = {
-  id: string
+type FieldId =
+  | 'name'
+  | 'email'
+  | 'experience'
+  | 'market'
+  | 'challenge'
+  | 'process'
+  | 'goal'
+  | 'commitment'
+
+type FieldConfig = {
+  id: FieldId
   num: string
   label: string
-  errLabel: string
-  control: 'input' | 'textarea'
+  placeholder?: string
+  help?: string
+  control: 'input' | 'textarea' | 'select'
   inputType?: string
   autoComplete?: string
-  help?: string
-  full?: boolean
+  options?: string[]
 }
 
-const fields: Field[] = [
-  { id: 'fullName', num: '01', label: 'Full name', errLabel: 'Full name', control: 'input', autoComplete: 'name' },
+const fields: FieldConfig[] = [
+  {
+    id: 'name',
+    num: '01',
+    label: 'Full name',
+    placeholder: 'e.g. Alex Mercer',
+    control: 'input',
+    autoComplete: 'name',
+  },
   {
     id: 'email',
     num: '02',
     label: 'Email address',
-    errLabel: 'Email address',
+    placeholder: 'e.g. alex@example.com',
+    help: "Where Marcus will follow up if it's a good fit.",
     control: 'input',
     inputType: 'email',
     autoComplete: 'email',
-    help: "Where Marcus will follow up if it's a good fit.",
   },
   {
     id: 'experience',
     num: '03',
     label: 'How long have you been trading?',
-    errLabel: 'Trading experience',
+    placeholder: 'e.g. 2 years',
     control: 'input',
-    help: 'e.g. 2 years actively trading futures.',
   },
   {
-    id: 'markets',
+    id: 'market',
     num: '04',
-    label: 'What markets do you trade?',
-    errLabel: 'Markets traded',
+    label: 'What do you trade?',
+    placeholder: 'e.g. NQ futures',
     control: 'input',
-    help: 'e.g. NQ and ES futures.',
   },
   {
     id: 'challenge',
     num: '05',
     label: 'What is your biggest recurring challenge?',
-    errLabel: 'This answer',
+    placeholder: 'Tell us what keeps showing up...',
+    help: 'The pattern or behavior that keeps showing up in your trading.',
     control: 'textarea',
-    help: 'The pattern that keeps showing up in your trading.',
-    full: true,
   },
   {
     id: 'process',
     num: '06',
     label: 'How do you currently prepare, execute, and review?',
-    errLabel: 'This answer',
+    placeholder: 'Describe your current process...',
+    help: 'A brief description of how you approach each trading session.',
     control: 'textarea',
-    help: 'A short description of your current process.',
-    full: true,
   },
   {
-    id: 'improve',
+    id: 'goal',
     num: '07',
-    label: 'What do you most want to improve?',
-    errLabel: 'This answer',
+    label: 'What would you want to be different after eight weeks?',
+    placeholder: 'Describe the change you want to make...',
+    help: 'The specific change or process improvement you want to build.',
     control: 'textarea',
-    help: 'The change you want to make over eight weeks.',
-    full: true,
   },
   {
-    id: 'why',
+    id: 'commitment',
     num: '08',
-    label: 'Why are you considering mentorship now?',
-    errLabel: 'This answer',
-    control: 'textarea',
-    full: true,
+    label: 'Can you commit to the weekly work and review process?',
+    control: 'select',
+    options: ['Yes, I can commit', 'I need to understand the schedule first'],
   },
 ]
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 export function ApplicationForm() {
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [values, setValues] = useState<Record<string, string>>({ commitment: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
 
-  function fieldError(field: Field, raw: string): string | undefined {
-    const value = raw.trim()
-    if (!value) return `${field.errLabel} is required.`
-    if (field.inputType === 'email' && !emailPattern.test(value)) {
-      return 'Enter a valid email address.'
-    }
-    return undefined
-  }
-
-  function validate() {
-    const next: Record<string, string> = {}
-    for (const field of fields) {
-      const message = fieldError(field, values[field.id] ?? '')
-      if (message) next[field.id] = message
-    }
-    return next
-  }
-
-  function handleBlur(field: Field) {
-    const message = fieldError(field, values[field.id] ?? '')
+  function validateField(id: FieldId, value: string) {
+    const rawSchema = applicationSchema.shape[id]
+    const parsed = rawSchema.safeParse(value)
     setErrors((prev) => {
-      if (message) {
-        if (prev[field.id] === message) return prev
-        return { ...prev, [field.id]: message }
+      if (!parsed.success) {
+        return { ...prev, [id]: parsed.error.issues[0].message }
       }
-      if (!prev[field.id]) return prev
+      if (!prev[id]) return prev
       const next = { ...prev }
-      delete next[field.id]
+      delete next[id]
       return next
     })
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const next = validate()
-    setErrors(next)
-    if (Object.keys(next).length > 0) {
-      const firstInvalid = fields.find((field) => next[field.id])?.id
-      if (firstInvalid) {
-        formRef.current?.querySelector<HTMLElement>(`#${firstInvalid}`)?.focus()
-      }
-      return
-    }
-    setSubmitted(true)
-    window.dispatchEvent(new CustomEvent('application:submitted'))
-  }
-
-  function update(id: string, value: string) {
+  function updateValue(id: string, value: string) {
     setValues((prev) => ({ ...prev, [id]: value }))
     setErrors((prev) => {
       if (!prev[id]) return prev
@@ -145,19 +125,68 @@ export function ApplicationForm() {
     })
   }
 
+  function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (isPending) return
+
+    // 1. Client-side Zod validation
+    const parsed = applicationSchema.safeParse(values)
+    if (!parsed.success) {
+      const nextErrors: Record<string, string> = {}
+      parsed.error.issues.forEach((err) => {
+        if (err.path[0]) {
+          nextErrors[err.path[0] as string] = err.message
+        }
+      })
+      setErrors(nextErrors)
+
+      // Focus the first invalid element
+      const firstInvalidId = fields.find((f) => nextErrors[f.id])?.id
+      if (firstInvalidId) {
+        const el = formRef.current?.querySelector<HTMLElement>(`#${firstInvalidId}`)
+        el?.focus()
+      }
+      toast.error('Please fix the errors in the form.')
+      return;
+    }
+
+    // 2. Submit via Server Action inside transition
+    startTransition(async () => {
+      try {
+        const result = await submitApplication(parsed.data)
+        if (result.success) {
+          setSubmitted(true)
+          window.dispatchEvent(new CustomEvent('application:submitted'))
+          toast.success('Application submitted successfully!')
+        } else if (result.errors) {
+          setErrors(result.errors)
+          const firstInvalidId = fields.find((f) => result.errors?.[f.id])?.id
+          if (firstInvalidId) {
+            formRef.current?.querySelector<HTMLElement>(`#${firstInvalidId}`)?.focus()
+          }
+          toast.error('Please check your input.')
+        } else {
+          toast.error(result.message || 'An error occurred.')
+        }
+      } catch (err) {
+        toast.error('Failed to submit application. Please try again.')
+      }
+    })
+  }
+
   if (submitted) {
     return (
       <div className="application-success" role="status" aria-live="polite">
         <p className="section-label">APPLICATION RECEIVED</p>
-        <h3>Application received.</h3>
-        <p>Thanks for applying. Marcus reviews every application personally.</p>
-        <p>If the mentorship looks like a good fit, you&apos;ll receive the next step by email.</p>
+        <h3>Thanks for putting your process on paper.</h3>
+        <p>Marcus will review your answers and follow up if the mentorship looks like a strong fit.</p>
+        <p>You should receive a confirmation or next steps by email shortly.</p>
       </div>
     )
   }
 
   return (
-    <form ref={formRef} className="application-form" noValidate onSubmit={handleSubmit}>
+    <form ref={formRef} className="application-form" noValidate onSubmit={handleFormSubmit}>
       <div className="form-grid">
         {fields.map((field) => {
           const error = errors[field.id]
@@ -167,7 +196,7 @@ export function ApplicationForm() {
               .join(' ') || undefined
 
           return (
-            <div className={`field${field.full ? ' field-full' : ''}`} key={field.id}>
+            <div className="field field-full" key={field.id}>
               <label htmlFor={field.id}>
                 {field.num} <span>{field.label}</span>
               </label>
@@ -176,16 +205,40 @@ export function ApplicationForm() {
                   {field.help}
                 </p>
               )}
+
               {field.control === 'textarea' ? (
                 <textarea
                   id={field.id}
                   name={field.id}
                   rows={3}
                   value={values[field.id] ?? ''}
-                  onChange={(event) => update(field.id, event.target.value)}
+                  placeholder={field.placeholder}
+                  onChange={(e) => updateValue(field.id, e.target.value)}
+                  onBlur={(e) => validateField(field.id, e.target.value)}
                   aria-invalid={error ? true : undefined}
                   aria-describedby={describedBy}
+                  disabled={isPending}
                 />
+              ) : field.control === 'select' ? (
+                <select
+                  id={field.id}
+                  name={field.id}
+                  value={values[field.id] ?? ''}
+                  onChange={(e) => updateValue(field.id, e.target.value)}
+                  onBlur={(e) => validateField(field.id, e.target.value)}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={describedBy}
+                  disabled={isPending}
+                >
+                  <option value="" disabled>
+                    Select one
+                  </option>
+                  {field.options?.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <input
                   id={field.id}
@@ -193,11 +246,15 @@ export function ApplicationForm() {
                   type={field.inputType ?? 'text'}
                   autoComplete={field.autoComplete}
                   value={values[field.id] ?? ''}
-                  onChange={(event) => update(field.id, event.target.value)}
+                  placeholder={field.placeholder}
+                  onChange={(e) => updateValue(field.id, e.target.value)}
+                  onBlur={(e) => validateField(field.id, e.target.value)}
                   aria-invalid={error ? true : undefined}
                   aria-describedby={describedBy}
+                  disabled={isPending}
                 />
               )}
+
               {error && (
                 <p className="field-error" id={`${field.id}-error`} role="alert">
                   {error}
@@ -207,8 +264,22 @@ export function ApplicationForm() {
           )
         })}
       </div>
-      <button className="apply-link submit-button" type="submit">
-        Submit application <ArrowUpRight size={16} strokeWidth={1.5} />
+
+      <button
+        className="apply-link submit-button w-full"
+        type="submit"
+        disabled={isPending}
+        style={{ opacity: isPending ? 0.7 : 1 }}
+      >
+        {isPending ? (
+          <>
+            Submitting application <Loader2 className="animate-spin" size={16} />
+          </>
+        ) : (
+          <>
+            Submit application <ArrowUpRight size={16} strokeWidth={1.5} />
+          </>
+        )}
       </button>
     </form>
   )

@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import { Toaster } from 'sonner'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -13,7 +14,7 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  metadataBase: new URL('https://marcusvale.example'),
+  metadataBase: new URL('https://marcus-vale-mentorship-beta.vercel.app/'),
   generator: 'v0.app',
   applicationName: 'Marcus Vale Mentorship',
   icons: {
@@ -55,7 +56,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-      <body className="antialiased">{children}{process.env.NODE_ENV === 'production' && <Analytics />}</body>
+      <body className="antialiased">
+        {children}
+        <Toaster theme="dark" position="bottom-right" />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
     </html>
   )
 }
