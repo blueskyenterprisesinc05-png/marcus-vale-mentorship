@@ -129,7 +129,7 @@ export default function Page() {
         <div className="hero-copy">
           <SectionLabel>1-ON-1 FUTURES TRADING MENTORSHIP</SectionLabel>
           <h1>Trade with a process.<br /><em>Not a prediction.</em></h1>
-          <p className="hero-lede">I help serious futures traders build a repeatable process, execute with discipline, and understand why their trades work—or don&apos;t.</p>
+          <p className="hero-lede"><span className="desktop-copy">I help serious futures traders build a repeatable process, execute with discipline, and understand why their trades work—or don&apos;t.</span><span className="mobile-copy">Build a repeatable process and make better decisions with the information you already have.</span></p>
           <div className="hero-actions"><ApplyLink /><a className="text-link" href="#x">Follow on X <ArrowUpRight size={15} /></a></div>
           <p className="hero-meta">8 weeks <span /> Private mentorship <span /> Limited to a small number of traders</p>
         </div>
